@@ -1,0 +1,55 @@
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, adjusted_rand_score
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Вчитување
+df = pd.read_csv('iris_custom.csv')
+X = df.drop('label', axis=1)
+y_true = df['label']  # за подоцна, не се користи за кластеринг
+
+# 2. K-Means со k=3
+kmeans = KMeans(n_clusters=3, random_state=42)
+y_kmeans = kmeans.fit_predict(X)
+
+# 3. Центроиди
+print("Координати на центроидите:")
+print(kmeans.cluster_centers_)
+
+# 4. Scatter plot
+plt.figure(figsize=(8,6))
+sns.scatterplot(x=X.iloc[:, 0], y=X.iloc[:, 1], hue=y_kmeans, palette='Set1')
+plt.title("K-Means кластери (k=3)")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.legend(title='Кластер')
+plt.show()
+
+# 5. Silhouette score
+sil_score = silhouette_score(X, y_kmeans)
+print(f"Silhouette Score: {sil_score:.2f}")
+
+# 6. Поклопување со вистински класи
+ari = adjusted_rand_score(y_true, y_kmeans)
+print(f"Adjusted Rand Index (вистински vs предвидени): {ari:.2f}")
+
+# 7. Испитување со k=4 и k=5
+for k in [4, 5]:
+    km = KMeans(n_clusters=k, random_state=42)
+    labels = km.fit_predict(X)
+    sil = silhouette_score(X, labels)
+    print(f"Silhouette Score за k={k}: {sil:.2f}")
+
+# 8. Визуелизација со PCA
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+
+plt.figure(figsize=(8,6))
+sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=y_kmeans, palette='Set2')
+plt.title("PCA проекција на кластерите")
+plt.xlabel("PCA 1")
+plt.ylabel("PCA 2")
+plt.legend(title='Кластер')
+plt.show()
